@@ -26,7 +26,7 @@ def create_file_in_fork(fork_repo, fork_branch, token):
         "Content-Type": "application/json"
     }
     data = {
-        "message": "[skip ci] Create test.txt",
+        "message": "[skip ci] Test",
         "content": base64.b64encode("Test new file.".encode()).decode(),
         "branch": fork_branch
     }
@@ -53,7 +53,7 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string):
                 create_file_in_fork(fork_repo, fork_branch, token)
                 break
             else:
-                print("Most recent comment does not start with '/bench'. Retrying in 750ms...")
+                print(f"Most recent comment does not start with '{search_string}'. Retrying in 350ms...")
         else:
             print("No issue comments found. Retrying in 350ms...")
         time.sleep(0.35)
