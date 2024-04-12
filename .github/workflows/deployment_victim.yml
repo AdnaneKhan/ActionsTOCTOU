@@ -22,7 +22,7 @@ jobs:
            node-version: 20.x
 
        - name: installing node_modules
-         run: cd environment_example && npm install 
+         run: cd deployment_example && npm install 
 
        - name: Build GitHub Action
-         run: cd environment_example && npm run build
+         run: cd deployment_example && npm run build
