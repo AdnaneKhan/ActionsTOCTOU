@@ -28,4 +28,4 @@ jobs:
         with:
           submodules: recursive
           ref: ${{ fromJson(steps.issue.outputs.result).sha }}
-      - run: bash comment_victim/test.sh
+      - run: bash comment_example/test.sh
