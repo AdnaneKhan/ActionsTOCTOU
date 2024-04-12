@@ -1,0 +1,15 @@
+{
+  "name": "deployment-hello",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node index.js",
+    "build": "echo \"Normal happy build\"!"
+  },
+  "author": "",
+  "license": "MIT"
+}
