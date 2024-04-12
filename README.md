@@ -69,7 +69,11 @@ GitHub's API has a rate limit of 5000/hour, a request every 500ms will probably 
 
 ### Examples
 
-The tool's help text is self-explanatory. If you use the GitHub CLI, you can pass the token like this:
+I've added some example vulnerable workflows to the repository and used my own account to showcase the vulnerability. **Please DO NOT create test PRs against this repository.** 
+
+If you want to use these workflows to test, then _mirror_ the repository by using GitHub's [repository import feature](https://github.com/new/import) and create a mirror. Then, enable Actions, create a test deployment environment and required reviewers rule, and use another account to create a PR with a dummy change (like adding a newline to the README), and use the script with modified files (the `test.sh` files or the `package.json`).
+
+The tool's help text is self-explanatory. If you use the GitHub CLI, you can pass the token like from it:
 
 ```
  GH_TOKEN=`gh auth token` python3 actions_toctou.py -h
