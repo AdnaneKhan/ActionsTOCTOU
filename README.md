@@ -65,7 +65,7 @@ In order to use it, you need to create a GitHub PAT with the `repo` scope, and i
 
 The tool expects the token to be set to the `GH_TOKEN` environment variable. The tool will check every 500ms.
 
-GitHub's API has a rate limit of 5000/hour, a request every 500ms will probably exhaust it. You should not run into rate limit issues testing a POC usingt two accounts that you control. If you are using this tool as part of a red team or adversary emulation exercise, then modify as you need - the code is simple.
+GitHub's API has a rate limit of 5000/hour, a request every 500ms will probably exhaust it. You should not run into rate limit issues testing a POC using two accounts that you control. If you are using this tool as part of a red team or adversary emulation exercise, then modify as you need - the code is simple.
 
 ### Examples
 
