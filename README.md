@@ -18,11 +18,11 @@ This PoC focuses on Public Poisoned Pipeline Execution, but it is likely that th
 
 This is probably the most common form of the vulnerability. The `issue_comment` trigger does not contain the pull request head sha, so most workflows that implement issue ops to run PR code tend to follow a flow like this:
 
-* Permission Check: Determine if the triggering actor meets some authorization criteria.
-* Ref Calculation: Calculates the PR ref by using a format expression with the PR number or using the GitHub API to retrieve the head sha.
-* Checkout: Uses an action or a CLI command to check out the PR code.
+* **Permission Check:** Determine if the triggering actor meets some authorization criteria.
+* **Ref Calculation:** Calculates the PR ref by using a format expression with the PR number or using the GitHub API to retrieve the head sha.
+* **Checkout:** Uses an action or a CLI command to check out the PR code.
 
-Regardless of what workflows do, they end up getting the latest commit from the PR. This leaves a short window between the time the maintainer makes the comment to approve trigger run and the workflow actually checking out the PR head.
+Regardless of what workflows do, they end up getting the latest commit from the PR. This leaves a short window between the time the maintainer makes the comment to approve the run and the workflow actually checking out the PR head.
 
 
 ### Deployment Environment Approval TOCTOU
