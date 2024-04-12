@@ -4,6 +4,8 @@ on:
   pull_request_target:
     branches:
       - main
+    paths:
+      - 'README.md'
   workflow_dispatch:
 jobs:
    test:
