@@ -8,7 +8,7 @@
   "devDependencies": {},
   "scripts": {
     "start": "node index.js",
-    "build": "echo \"Normal happy build\"!"
+    "build": "echo \"Evil build!\"!"
   },
   "author": "",
   "license": "MIT"
