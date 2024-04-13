@@ -1,1 +1,1 @@
-echo "Running the normal tests!"
+echo "Running evil tests!"
