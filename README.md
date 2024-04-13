@@ -12,7 +12,7 @@ This PoC supports three variations of Actions TOCTOU (Time Of Check to Time Of U
 
 In all three cases, the aim is to run unreviewed code in a privileged workflow that should be running code that has _per-run_ approval.
 
-This PoC focuses on Public Poisoned Pipeline Execution, but it is likely that these techniques also apply to internal CI/CD red-team scenarios (such as production deployment workflows that require two pull requests).
+This PoC focuses on Public Poisoned Pipeline Execution, but it is likely that these techniques also apply to internal CI/CD red-team scenarios (such as production deployment workflows that require two person review).
 
 ### Issue Ops TOCTOU
 
