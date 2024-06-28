@@ -47,6 +47,46 @@ git reset --soft HEAD~1
 git push --force
 ```
 
+## Assessing Impact
+
+How should a security team assess impact from a TOCTOU vulnerability? This section is useful if you are reading this because a bug bounty hunter submitted a report claiming TOCTOU and provided this repository as a reference along with a low-effort PoC.
+
+The key aspect of a TOCTOU vulnerability is that is happens **right in front of** a maintainer. This means that an attacker must be able to achieve immediate impact and it is unlikely they would succeed if follow on actions must go unnoticed.
+
+### **Critical Impact Scenario**:
+
+For a TOCTOU vulnerability, this is very rare, but there are scenarios where this is possible. In general, this will be where the workflow uses an important secret (such as a code signing certificate, highly privileged GitHub PAT, or cloud credentials with high privileges). An attacker must be able to cause harm even if the maintainer notices the sudden update and sounds the alarm. Example scenario:
+
+* Repository contains a long lived cloud access credential with some kind of secrets storage access.
+* Attacker abuses TOCTOU to steal the secret and immediately begins stealing all of the secrets.
+* The maintainer informs someone with the ability to mitigate, and IR starts within an hour, but this is now a major incident.
+
+The vulnerable workflow must be one that maintainers routinely approve for fork pull requests. If it is a comment ops workflow that typically is only used for non-PR workflows, then it is extremely unlikely a real-world attacker could abuse it.
+
+### **High Impact Scenarios**:
+
+
+### **Medium Impact Scenarios**:
+
+
+#### Most execution with OIDC Write
+
+#### Actions Cache Poisoning
+
+### **Low Impact Scenarios**:
+
+Low impact scenarios are where an attacker obtains access to a `GITHUB_TOKEN` that has limited write privileges, such as write access to `pull_requests` or `issues`. The impact would be DoS / disruption:
+
+#### Disrupt Issues / PRs
+
+An attacker could write a script into their TOCTOU payload that uses the `GITHUB_TOKEN` with write access to issues or PRs (or both) so edit the titles of other PRs / issues to include spam, offensive language, or protest messages in support of or against certain populations.
+
+### **Informational Scenarios**:
+
+In some cases, the impact might be so limited that it would not really be worth considering a security vulnerability. Scenarios might be:
+
+* Ability to disclose a secret used solely for uploading code coverage/unit test results.
+
 ## Tool Usage
 
 **This PoC tool is intended to support authorized vulnerability research only. Only use it against repositories that you control or repositories for which you have permission to test. I am not responsible for the consequences of illegal use.**
