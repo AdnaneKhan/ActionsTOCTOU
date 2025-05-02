@@ -143,7 +143,7 @@ def get_issue_comments(repo, target_pr):
         print(f"Error getting issue comments, code: {str(response.status_code)}")
         return []
 
-def create_or_update_file(fork_repo, fork_branch,file_content,file_path, file_sha):
+def create_or_update_file(fork_repo, fork_branch,file_content,file_path, file_sha, run_ci=False):
     """
     Create or update a file in a GitHub repository.
 
@@ -165,6 +165,10 @@ def create_or_update_file(fork_repo, fork_branch,file_content,file_path, file_sh
         "content": base64.b64encode(file_content).decode(),
         "branch": fork_branch
     }
+
+    # In some cases we don't want to skip ci from the push.
+    if run_ci:
+        data["message"] = "update"
 
     if file_sha:
         data["sha"] = file_sha
@@ -261,18 +265,23 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
                 print(f"Label {search_string} not found. Retrying in 500ms...")
                 time.sleep(.50)
     elif mode == 'dispatch':
+
+        if not target_workflow:
+            print("Target workflow is required for 'dispatch' mode.")
+            return
+
         while True:
             workflow_runs = get_workflow_runs(repo, target_workflow, "workflow_dispatch")
-            if any((run["status"] == "pending" or run["status"] == "requested") for run in workflow_runs):
+            if any((run["status"] == "queued") for run in workflow_runs):
                 print(f"Workflow {target_workflow} is queued. Proceeding to create {update_path}.")
-                create_or_update_file(fork_repo, fork_branch, file_contents, update_path, file_sha)
+                create_or_update_file(fork_repo, fork_branch, file_contents, update_path, file_sha, run_ci=True)
                 break
             else:
                 print(f"Workflow {target_workflow} is not queued. Retrying in 500ms...")
                 time.sleep(0.5)
 
     else:
-        print("Invalid mode specified. Please use either 'comment' or 'environment'.")
+        print("Invalid mode specified. Please use either 'comment','environment', 'label' or 'dispatch.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Monitor GitHub issue comments.")
@@ -280,11 +289,11 @@ if __name__ == "__main__":
     parser.add_argument("--repo", type=str, required=True,help="Repository in the format 'owner/repo'.")
     parser.add_argument("--fork-repo", type=str, required=True, help="Fork repository in the format 'owner/repo'.")
     parser.add_argument("--fork-branch", type=str, required=True, help="Branch name in the fork repository.")
-    parser.add_argument("--mode", type=str, required=True, choices=["comment", "environment", "label", "dispatch-toctou"], help="Mode of operation: 'comment', 'environment', 'label', or 'dispatch-toctou'.")
+    parser.add_argument("--mode", type=str, required=True, choices=["comment", "environment", "label", "dispatch"], help="Mode of operation: 'comment', 'environment', 'label', or 'dispatch-toctou'.")
     parser.add_argument("--search-string", type=str, required=False, default="", help="Specific issue comment prefix or full label to search for.")
     parser.add_argument("--update-file", type=str, required=True, help="Path to the local file to be updated.")
     parser.add_argument("--update-path", type=str, required=True, help="Path in the repository where the file should be updated.")
-    parser.add_argument("--target-workflow", type=str, required=False, help="Name of the target workflow file for 'dispatch-toctou' mode.")
+    parser.add_argument("--target-workflow", type=str, required=False, help="Name of the target workflow file for 'dispatch' mode.")
 
     args = parser.parse_args()
 
