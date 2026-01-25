@@ -3,6 +3,7 @@ import requests
 import time
 import os
 import base64
+import re
 from datetime import datetime, timedelta
 
 token = os.environ.get("GH_TOKEN")
@@ -184,7 +185,7 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
     repo (str): The repository in the format 'owner/repo'.
     fork_repo (str): The fork repository in the format 'owner/repo'.
     fork_branch (str): The branch in the fork repository.
-    search_string (str): The specific issue comment prefix or full label to search for.
+    search_string (str): Regex pattern to match against issue comments or labels.
     mode (str): The mode of operation: 'comment', 'environment' or 'label'.
     update_file (str): The path to the local file to be updated.
     update_path (str): The path in the repository where the file should be updated.
@@ -201,13 +202,13 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
             issue_comments = get_issue_comments(repo, target_pr)
             if issue_comments:
                 most_recent_comment = issue_comments[-1]["body"].strip() 
-                if most_recent_comment.startswith(search_string):
-                    print(f"Most recent comment starts with '{search_string}'. Proceeding to create {update_path} file.")
+                if re.search(search_string, most_recent_comment):
+                    print(f"Most recent comment matches '{search_string}'. Proceeding to create {update_path} file.")
                   
                     create_or_update_file(fork_repo, fork_branch, file_contents, update_path, file_sha)
                     break
                 else:
-                    print(f"Most recent comment does not start with '{search_string}'. Retrying in 500ms...")
+                    print(f"Most recent comment does not match '{search_string}'. Retrying in 500ms...")
             else:
                 print("No issue comments found. Retrying in 500ms...")
             time.sleep(0.5)
@@ -232,12 +233,12 @@ def main(target_pr, repo, fork_repo, fork_branch, search_string, mode, update_fi
         while True:
             labels = get_labels(repo, target_pr)
         
-            if search_string in labels:
-                print(f"Label {search_string} found. Proceeding to create {update_path}.")
+            if any(re.search(search_string, label) for label in labels):
+                print(f"Label matching '{search_string}' found. Proceeding to create {update_path}.")
                 create_or_update_file(fork_repo, fork_branch, file_contents, update_path, file_sha)
                 break
             else:
-                print(f"Label {search_string} not found. Retrying in 500ms...")
+                print(f"Label matching '{search_string}' not found. Retrying in 500ms...")
                 time.sleep(.50)
 
     else:
@@ -250,7 +251,7 @@ if __name__ == "__main__":
     parser.add_argument("--fork-repo", type=str, required=True, help="Fork repository in the format 'owner/repo'.")
     parser.add_argument("--fork-branch", type=str, required=True, help="Branch name in the fork repository.")
     parser.add_argument("--mode", type=str, required=True, choices=["comment", "environment", "label"], help="Mode of operation: 'comment', 'environment' or 'label'.")
-    parser.add_argument("--search-string", type=str, required=False, default="", help="Specific issue comment prefix or full label to search for.")
+    parser.add_argument("--search-string", type=str, required=False, default="", help="Regex pattern to match against issue comments or labels.")
     parser.add_argument("--update-file", type=str, required=True, help="Path to the local file to be updated.")
     parser.add_argument("--update-path", type=str, required=True, help="Path in the repository where the file should be updated.")
 
